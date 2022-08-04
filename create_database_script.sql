@@ -1,7 +1,9 @@
 -- Begin transaction
 BEGIN;
 
+DROP TABLE IF EXISTS public.exam_result;
 DROP TABLE IF EXISTS public.student;
+DROP TABLE IF EXISTS public.subject;
 
 CREATE TABLE IF NOT EXISTS public.student
 (
@@ -17,8 +19,6 @@ CREATE TABLE IF NOT EXISTS public.student
     CONSTRAINT unique_phone_number UNIQUE (phone_numbers)
 );
 
-DROP TABLE IF EXISTS public.subject;
-
 CREATE TABLE IF NOT EXISTS public.subject
 (
     id bigint NOT NULL,
@@ -28,8 +28,6 @@ CREATE TABLE IF NOT EXISTS public.subject
     updated_datetime timestamp with time zone NOT NULL,
     PRIMARY KEY (id)
 );
-
-DROP TABLE IF EXISTS public.exam_result;
 
 CREATE TABLE IF NOT EXISTS public.exam_result
 (
@@ -45,13 +43,28 @@ ALTER TABLE IF EXISTS public.exam_result
     ON DELETE CASCADE
     NOT VALID;
 
-
 ALTER TABLE IF EXISTS public.exam_result
     ADD CONSTRAINT subject_id_fkey FOREIGN KEY (subject_id)
     REFERENCES public.subject (id) MATCH SIMPLE
     ON UPDATE CASCADE
     ON DELETE CASCADE
     NOT VALID;
+	
+CREATE INDEX subject_id_index
+    ON public.subject USING btree
+    (id ASC NULLS LAST)
+    INCLUDE(id)
+    TABLESPACE pg_default;
+	
+CREATE INDEX student_id_index
+    ON public.student USING btree
+    (id ASC NULLS LAST)
+    INCLUDE(id)
+    TABLESPACE pg_default;
+
+-- To make custerized index: ALTER TABLE IF EXISTS public.subject CLUSTER ON subject_id_index;
+
+-- To make custerized index: ALTER TABLE IF EXISTS public.student CLUSTER ON student_id_index;
 
 -- Commit transaction or rollback on error
 COMMIT;
